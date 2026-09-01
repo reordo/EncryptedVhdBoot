@@ -1,0 +1,62 @@
+## @file
+# Minimal VeraCrypt crypto library used by the VHD boot preloader.
+#
+# The source files are hard-linked from the pinned upstream VeraCrypt submodule
+# into VeraCrypt-DCS by its own mklinks_src.bat script. DCS-specific UI, TPM,
+# configuration, filesystem, and random-generation wrappers are deliberately
+# excluded.
+#
+# Copyright (c) 2026, Keishin Senzaki. All rights reserved.
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = EvbVeraCryptCryptoLib
+  FILE_GUID                      = 91CCCE22-B98D-4DF6-8FE8-888A37BBFC50
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 0.1
+  LIBRARY_CLASS                  = VeraCryptLib|UEFI_APPLICATION
+
+[Sources]
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/common/Crc.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/common/Crypto.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/common/Endian.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/common/Pkcs5.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/common/Volumes.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/common/Xts.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Aeskey.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Aestab.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Aes_hw_cpu.nasm
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/blake2s.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/blake2s_SSE2.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/blake2s_SSE41.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/blake2s_SSSE3.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Camellia.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/cpu.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/kuznyechik.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Serpent.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Sha2.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Streebog.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Twofish.c
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Whirlpool.c
+
+[Sources.X64]
+  ../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/crypto/Aes_x64.nasm
+
+[Binaries.X64]
+  LIB|../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/Twofish_x64.obj|*
+  LIB|../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/Camellia_aesni_x64.obj|*
+  LIB|../../../third_party/VeraCrypt-DCS/Library/VeraCryptLib/Camellia_x64.obj|*
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+
+[BuildOptions]
+  *_VS2022_X64_CC_FLAGS    = /D_UEFI /DVC_DCS_DISABLE_ARGON2 /wd4189
+  *_VS2022_X64_NASM_FLAGS  = -d_UEFI=1

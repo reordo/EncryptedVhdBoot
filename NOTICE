@@ -1,0 +1,52 @@
+Encrypted VHD Boot Bridge
+Copyright (c) 2026 Keishin Senzaki
+
+The original source files in this repository are licensed under the
+BSD-2-Clause-Patent license in LICENSE.
+
+The build uses the following third-party projects at the exact revisions
+recorded by the Git submodules and listed in SOURCE.txt:
+
+- EDK II, BSD-2-Clause-Patent. See LICENSES/BSD-2-Clause-Patent.txt.
+- VeraCrypt-DCS, LGPL-3.0. See LICENSES/LGPL-3.0.txt and
+  LICENSES/GPL-3.0.txt.
+- VeraCrypt cryptographic and boot components, governed by the VeraCrypt,
+  Apache 2.0, TrueCrypt 3.0, and component-specific notices collected in
+  LICENSES/VeraCrypt.txt.
+
+The VeraCrypt-derived portions of the UEFI application are governed by the
+version of the TrueCrypt License included in LICENSES/VeraCrypt.txt.
+
+The VeraCrypt cryptographic sources are staged through VeraCrypt-DCS's build
+layout. To the extent that LGPL-3.0-covered VeraCrypt-DCS material is included
+in a combined work, the LGPL-3.0 terms apply to that material. Complete source,
+application code, build scripts, and installation information needed to rebuild
+and relink the UEFI application are provided in the repository and in the full
+source archive published with binary releases.
+
+Based on TrueCrypt, freely available at http://www.truecrypt.org/.
+
+Ventoy, VeraCrypt, TrueCrypt, Windows, and Microsoft are names or trademarks of
+their respective owners. This project is independent and is not affiliated
+with or endorsed by the Ventoy project, IDRIX, AM Crypto, the TrueCrypt
+Developers Association, or Microsoft.
+
+The prebuilt vhdboot image is derived from the Ventoy `ventoy/vhdiso`
+Win10Based v3.0 image:
+
+https://github.com/ventoy/vhdiso
+https://github.com/ventoy/vhdiso/releases/tag/v3.0
+
+Ventoy-authored portions of that project are distributed under GPL-3.0. See
+LICENSES/GPL-3.0.txt. The upstream image also contains non-open-source Microsoft
+boot files extracted from a Windows ISO, as documented by Ventoy at:
+
+https://www.ventoy.net/en/plugin_vhdboot.html
+
+The Git source tree does not contain the official Ventoy vhdboot image or the
+Microsoft files inside it. Building from source requires that image as an
+external input. A prebuilt derived image is published separately as a GitHub
+Release asset for parity with the upstream `vhdiso` release model. It
+necessarily incorporates contents from the upstream image and remains subject
+to all applicable third-party terms. No license in this repository changes or
+supersedes the terms governing those files.

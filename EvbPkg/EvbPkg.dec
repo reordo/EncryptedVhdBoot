@@ -1,0 +1,12 @@
+## @file
+# Package declaration for Encrypted VHD Boot Bridge.
+#
+# Copyright (c) 2026, Keishin Senzaki. All rights reserved.
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = EvbPkg
+  PACKAGE_GUID                   = 05F6B0A9-26EB-438F-89E2-51D71A183D7F
+  PACKAGE_VERSION                = 0.1

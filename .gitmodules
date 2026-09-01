@@ -1,0 +1,9 @@
+[submodule "third_party/VeraCrypt-DCS"]
+	path = third_party/VeraCrypt-DCS
+	url = https://github.com/veracrypt/VeraCrypt-DCS.git
+[submodule "third_party/edk2"]
+	path = third_party/edk2
+	url = https://github.com/tianocore/edk2.git
+[submodule "third_party/VeraCrypt"]
+	path = third_party/VeraCrypt
+	url = https://github.com/veracrypt/VeraCrypt.git

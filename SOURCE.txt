@@ -1,0 +1,55 @@
+Encrypted VHD Boot Bridge source code
+
+The preferred-form source code and build instructions are available free of
+charge at:
+
+https://github.com/reordo/EncryptedVhdBoot
+
+Release source tag:
+v1.0.0
+
+Required source revisions:
+
+VeraCrypt
+b48e31f5b47da7d41025e3f0e02751675e15005a
+https://github.com/veracrypt/VeraCrypt/commit/b48e31f5b47da7d41025e3f0e02751675e15005a
+
+VeraCrypt-DCS
+ef579bd6005fd38ed7e5ada8f739deb1f6850007
+https://github.com/veracrypt/VeraCrypt-DCS/commit/ef579bd6005fd38ed7e5ada8f739deb1f6850007
+
+EDK II
+2970e5699ba6267f3384ffab20f96647578aebc8
+https://github.com/tianocore/edk2/commit/2970e5699ba6267f3384ffab20f96647578aebc8
+
+Required nested EDK II revisions:
+
+Brotli
+e230f474b87134e8c6c85b630084c612057f253e
+
+MIPI Sys-T
+370b5944c046bab043dd8b133727b2135af7747a
+
+Clone the repository and all required source dependencies with:
+
+git clone https://github.com/reordo/EncryptedVhdBoot.git
+cd EncryptedVhdBoot
+tools\Initialize-Repository.ps1
+
+Each binary release also provides an EncryptedVhdBoot-v1.0.0-source.zip asset
+containing the project tree and the complete contents of these required source
+revisions. Its SOURCE-MANIFEST.txt records every included commit.
+
+The prebuilt vhdboot image is derived from the official Ventoy `ventoy/vhdiso`
+Win10Based v3.0 image:
+
+https://github.com/ventoy/vhdiso/releases/tag/v3.0
+
+Required upstream image SHA-256:
+6161d63520eb72bd1d5cb99aa9a771cc8b93ad9718de637b7d2195911dd224ef
+
+Upstream ventoy_vhdboot-v3.0.zip SHA-256:
+6af371a1ee457c75fcbe864e08b5f5d4583f0ef838713fec2920d3d62176b686
+
+The upstream image is an external build input. It and the non-open-source
+Microsoft boot files inside it are not part of the Git source tree.

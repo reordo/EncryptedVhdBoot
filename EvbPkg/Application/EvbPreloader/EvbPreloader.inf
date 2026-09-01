@@ -1,0 +1,39 @@
+## @file
+# In-memory VHD1 I/O-hook preloader for the supported Windows Boot Manager.
+#
+# Copyright (c) 2026, Keishin Senzaki. All rights reserved.
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = EvbPreloader
+  FILE_GUID                      = 4D519D88-8F97-4E3A-AF96-FDA453D72511
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = UefiMain
+
+[Sources]
+  EvbPreloader.c
+  EvbVeraCrypt.c
+  EvbVeraCrypt.h
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+  EvbPkg/EvbPkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  BaseLib
+  BaseMemoryLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
+  UefiLib
+  DevicePathLib
+  MemoryAllocationLib
+  CompilerIntrinsicsLib
+  VeraCryptLib
+
+[Protocols]
+  gEfiLoadedImageProtocolGuid

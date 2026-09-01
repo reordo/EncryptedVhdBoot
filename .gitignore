@@ -1,0 +1,22 @@
+.cache/
+artifacts/
+Build/
+Conf/
+
+# Build outputs and external binary inputs.
+*.pdb
+*.efi
+*.dcs
+*.img
+*.iso
+*.zip
+*.vhd
+*.vhdx
+__pycache__/
+*.pyc
+
+# Local editor and OS files.
+.vs/
+.vscode/
+Thumbs.db
+Desktop.ini
