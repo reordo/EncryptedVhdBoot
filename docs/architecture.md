@@ -156,6 +156,19 @@ simple EFI application return cannot serve as cancellation here because the
 tested Ventoy vhdboot chain immediately launches the same VHD again. Cold
 reset reliably returns to the normal firmware/Ventoy boot sequence.
 
+Before starting Boot Manager, the preloader checks for both
+`\ventoy\ventoy_vhdboot.img` and `\ventoy\ventoy_vhdboot.silent` on the same
+volume. It first tries UEFI file systems. Ventoy's NTFS data partition is not
+necessarily exposed through that protocol, so the preloader can also inspect
+its NTFS MFT read-only through UEFI Block I/O. The parser accepts basic NTFS
+file records of at most 4096 bytes from the first 256 MiB of the MFT;
+unsupported layouts keep the normal visible interface. The marker is
+on the Ventoy data volume, not inside the El Torito EFI image.
+
+The marker enables silent input: all project-generated console output is
+suppressed, the screen is cleared, and the cursor is hidden. Authentication,
+PIM handling, retry limits, and cancellation remain the same.
+
 The preloader registers an `EVT_SIGNAL_EXIT_BOOT_SERVICES` callback before
 starting Boot Manager. That callback uses no boot services: it volatile-wipes
 the private expanded-key workspace and partial-sector bounce buffer, then

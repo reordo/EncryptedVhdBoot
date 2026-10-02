@@ -16,6 +16,7 @@
 [Sources]
   EvbPreloader.c
   EvbVeraCrypt.c
+  EvbNtfsMarker.c
   EvbVeraCrypt.h
 
 [Packages]
@@ -37,3 +38,5 @@
 
 [Protocols]
   gEfiLoadedImageProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiBlockIoProtocolGuid

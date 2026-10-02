@@ -18,10 +18,13 @@
 #include <Library/UefiLib.h>
 #include <IndustryStandard/PeImage.h>
 #include <Protocol/LoadedImage.h>
+#include <Protocol/SimpleFileSystem.h>
 
 #include "EvbVeraCrypt.h"
 
 #define EVB_ORIGINAL_BOOT_MANAGER_PATH  L"\\EFI\\BOOT\\bootmgfw.original.efi"
+#define EVB_VENTOY_IMAGE_PATH           L"\\ventoy\\ventoy_vhdboot.img"
+#define EVB_QUIET_MARKER_PATH           L"\\ventoy\\ventoy_vhdboot.silent"
 
 // Profile for bootmgfw.efi 10.0.10240.16384, public PDB
 // 141D8719-4A66-402C-9357-588E9E421864 age 2.
@@ -68,6 +71,97 @@ STATIC UINT8        mBootApplicationHookOriginal[EVB_BOOT_APP_HOOK_SIZE];
 STATIC VOID         *mBootApplicationTrampoline;
 STATIC EVB_BOOT_APPLICATION_START  mOriginalBootApplicationStart;
 STATIC BOOLEAN      mVeraCryptChecked;
+STATIC BOOLEAN      mQuietMode = TRUE;
+
+BOOLEAN
+EvbIsQuietMode (
+  VOID
+  )
+{
+  return mQuietMode;
+}
+
+STATIC
+BOOLEAN
+EvbFileExists (
+  IN EFI_FILE_PROTOCOL  *Root,
+  IN CHAR16             *Path
+  )
+{
+  EFI_STATUS         Status;
+  EFI_FILE_PROTOCOL  *File;
+
+  File = NULL;
+  Status = Root->Open (Root, &File, Path, EFI_FILE_MODE_READ, 0);
+  if (EFI_ERROR (Status)) {
+    return FALSE;
+  }
+
+  File->Close (File);
+  return TRUE;
+}
+
+STATIC
+BOOLEAN
+EvbFindQuietMarker (
+  VOID
+  )
+{
+  EFI_STATUS                       Status;
+  EFI_HANDLE                       *Handles;
+  UINTN                            HandleCount;
+  UINTN                            Index;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *FileSystem;
+  EFI_FILE_PROTOCOL                *Root;
+  BOOLEAN                          Found;
+
+  Handles = NULL;
+  HandleCount = 0;
+  Found = FALSE;
+  Status = gBS->LocateHandleBuffer (
+                  ByProtocol,
+                  &gEfiSimpleFileSystemProtocolGuid,
+                  NULL,
+                  &HandleCount,
+                  &Handles
+                  );
+  if (EFI_ERROR (Status)) {
+    return EvbNtfsQuietMarkerExists ();
+  }
+
+  for (Index = 0; Index < HandleCount; ++Index) {
+    Status = gBS->HandleProtocol (
+                    Handles[Index],
+                    &gEfiSimpleFileSystemProtocolGuid,
+                    (VOID **)&FileSystem
+                    );
+    if (EFI_ERROR (Status)) {
+      continue;
+    }
+
+    Status = FileSystem->OpenVolume (FileSystem, &Root);
+    if (EFI_ERROR (Status)) {
+      continue;
+    }
+
+    if (EvbFileExists (Root, EVB_VENTOY_IMAGE_PATH) &&
+        EvbFileExists (Root, EVB_QUIET_MARKER_PATH))
+    {
+      Found = TRUE;
+    }
+
+    Root->Close (Root);
+    if (Found) {
+      break;
+    }
+  }
+
+  FreePool (Handles);
+  if (!Found) {
+    Found = EvbNtfsQuietMarkerExists ();
+  }
+  return Found;
+}
 
 typedef struct {
   UINT8                     *Base;
@@ -444,7 +538,7 @@ EvbStartBootApplication (
 
   Hooked = EvbHookWinloadVhdParser (ImageBase, ImageSize);
   if (!Hooked && EvbVeraCryptIsActive ()) {
-    Print (L"[EVB] Refusing encrypted boot: Winload VHD1 parser was not uniquely validated.\r\n");
+    EVB_PRINT (L"[EVB] Refusing encrypted boot: Winload VHD1 parser was not uniquely validated.\r\n");
     return EVB_STATUS_UNSUCCESSFUL;
   }
 
@@ -589,9 +683,9 @@ EvbVhdReadPassThrough (
     CryptoStatus       = EvbVeraCryptInitialize (mOriginalVhdRead, VhdContext, Flags);
     mVeraCryptChecked  = TRUE;
     if (CryptoStatus == EFI_NOT_FOUND) {
-      Print (L"[EVB] Empty password: continuing without VeraCrypt.\r\n");
+      EVB_PRINT (L"[EVB] Empty password: continuing without VeraCrypt.\r\n");
     } else if (EFI_ERROR (CryptoStatus)) {
-      Print (L"[EVB] VeraCrypt initialization failed: %r\r\n", CryptoStatus);
+      EVB_PRINT (L"[EVB] VeraCrypt initialization failed: %r\r\n", CryptoStatus);
       return EVB_STATUS_UNSUCCESSFUL;
     }
   }
@@ -634,9 +728,9 @@ EvbVhdWritePassThrough (
     CryptoStatus      = EvbVeraCryptInitialize (mOriginalVhdRead, VhdContext, Flags);
     mVeraCryptChecked = TRUE;
     if (CryptoStatus == EFI_NOT_FOUND) {
-      Print (L"[EVB] Empty password: continuing without VeraCrypt.\r\n");
+      EVB_PRINT (L"[EVB] Empty password: continuing without VeraCrypt.\r\n");
     } else if (EFI_ERROR (CryptoStatus)) {
-      Print (L"[EVB] VeraCrypt initialization failed: %r\r\n", CryptoStatus);
+      EVB_PRINT (L"[EVB] VeraCrypt initialization failed: %r\r\n", CryptoStatus);
       return EVB_STATUS_UNSUCCESSFUL;
     }
   }
@@ -775,8 +869,13 @@ UefiMain (
                   (VOID **)&Self
                   );
   if (EFI_ERROR (Status)) {
-    Print (L"[EVB] Cannot inspect the preloader image: %r\r\n", Status);
     return Status;
+  }
+
+  mQuietMode = EvbFindQuietMarker ();
+  if (mQuietMode) {
+    (VOID)gST->ConOut->ClearScreen (gST->ConOut);
+    (VOID)gST->ConOut->EnableCursor (gST->ConOut, FALSE);
   }
 
   BootManagerPath = FileDevicePath (
@@ -784,7 +883,7 @@ UefiMain (
                       EVB_ORIGINAL_BOOT_MANAGER_PATH
                       );
   if (BootManagerPath == NULL) {
-    Print (L"[EVB] Cannot construct the original BOOTMGR path.\r\n");
+    EVB_PRINT (L"[EVB] Cannot construct the original BOOTMGR path.\r\n");
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -800,7 +899,7 @@ UefiMain (
   BootManagerPath = NULL;
 
   if (EFI_ERROR (Status)) {
-    Print (
+    EVB_PRINT (
       L"[EVB] Cannot load %s: %r\r\n",
       EVB_ORIGINAL_BOOT_MANAGER_PATH,
       Status
@@ -814,7 +913,7 @@ UefiMain (
                   (VOID **)&BootManager
                   );
   if (EFI_ERROR (Status)) {
-    Print (L"[EVB] Cannot inspect the original BOOTMGR: %r\r\n", Status);
+    EVB_PRINT (L"[EVB] Cannot inspect the original BOOTMGR: %r\r\n", Status);
     gBS->UnloadImage (BootManagerHandle);
     return Status;
   }
@@ -827,7 +926,7 @@ UefiMain (
 
   Status = EvbValidateAndHookBootManager (BootManager);
   if (EFI_ERROR (Status)) {
-    Print (
+    EVB_PRINT (
       L"[EVB] Unsupported or protected BOOTMGR image: %r\r\n",
       Status
       );
@@ -841,21 +940,21 @@ UefiMain (
   // BOOTMGR's view of available pages.
   Status = EvbVeraCryptReserveBootParams ();
   if (EFI_ERROR (Status)) {
-    Print (L"[EVB] Cannot reserve VeraCrypt boot-parameter memory: %r\r\n", Status);
+    EVB_PRINT (L"[EVB] Cannot reserve VeraCrypt boot-parameter memory: %r\r\n", Status);
     EvbRestoreBootManager ();
     gBS->UnloadImage (BootManagerHandle);
     return Status;
   }
 
-  Print (L"[EVB] BOOTMGR validated; starting with VeraCrypt-aware VHD hooks.\r\n");
+  EVB_PRINT (L"[EVB] BOOTMGR validated; starting with VeraCrypt-aware VHD hooks.\r\n");
   ExitStatus = gBS->StartImage (BootManagerHandle, &ExitDataSize, &ExitData);
 
   EvbRestoreBootManager ();
   if (ExitData != NULL) {
-    Print (L"[EVB] BOOTMGR returned: %r: %s\r\n", ExitStatus, ExitData);
+    EVB_PRINT (L"[EVB] BOOTMGR returned: %r: %s\r\n", ExitStatus, ExitData);
     FreePool (ExitData);
   } else {
-    Print (L"[EVB] BOOTMGR returned: %r\r\n", ExitStatus);
+    EVB_PRINT (L"[EVB] BOOTMGR returned: %r\r\n", ExitStatus);
   }
   gBS->UnloadImage (BootManagerHandle);
   return ExitStatus;

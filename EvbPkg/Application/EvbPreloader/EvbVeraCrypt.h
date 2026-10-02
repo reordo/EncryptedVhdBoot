@@ -9,6 +9,19 @@
 #define EVB_VERACRYPT_H_
 
 #include <Uefi.h>
+#include <Library/UefiLib.h>
+
+BOOLEAN
+EvbIsQuietMode (
+  VOID
+  );
+
+BOOLEAN
+EvbNtfsQuietMarkerExists (
+  VOID
+  );
+
+#define EVB_PRINT(...)  do { if (!EvbIsQuietMode ()) { Print (__VA_ARGS__); } } while (FALSE)
 
 typedef INT32 (EFIAPI *EVB_VHD_IO)(
   IN VOID    *VhdContext,

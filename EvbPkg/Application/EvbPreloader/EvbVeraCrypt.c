@@ -181,7 +181,7 @@ EvbPrintAttributionBanner (
   (VOID)gST->ConOut->ClearScreen (gST->ConOut);
   (VOID)gST->ConOut->SetCursorPosition (gST->ConOut, 0, 0);
 
-  Print (
+  EVB_PRINT (
     L"\r\n"
     L"Encrypted VHD Boot Bridge\r\n"
     L"Author: Keishin Senzaki (reorder)\r\n"
@@ -205,11 +205,11 @@ EvbRedrawPassword (
   UINTN  Index;
 
   for (Index = 0; Index < VcPassword->Length; ++Index) {
-    Print (L"\b");
+    EVB_PRINT (L"\b");
   }
 
   for (Index = 0; Index < VcPassword->Length; ++Index) {
-    Print (L"%c", Visible ? (CHAR16)VcPassword->Text[Index] : L'*');
+    EVB_PRINT (L"%c", Visible ? (CHAR16)VcPassword->Text[Index] : L'*');
   }
 }
 
@@ -222,11 +222,11 @@ EvbCollapsePasswordDisplay (
   UINTN  Index;
 
   for (Index = 0; Index < VcPassword->Length; ++Index) {
-    Print (L"\b \b");
+    EVB_PRINT (L"\b \b");
   }
 
   if (VcPassword->Length != 0) {
-    Print (L"*");
+    EVB_PRINT (L"*");
   }
 }
 
@@ -241,11 +241,11 @@ EvbRedrawPim (
   UINTN  Index;
 
   for (Index = 0; Index < DigitCount; ++Index) {
-    Print (L"\b");
+    EVB_PRINT (L"\b");
   }
 
   for (Index = 0; Index < DigitCount; ++Index) {
-    Print (L"%c", Visible ? Digits[Index] : L'*');
+    EVB_PRINT (L"%c", Visible ? Digits[Index] : L'*');
   }
 }
 
@@ -255,7 +255,7 @@ EvbCancelBoot (
   VOID
   )
 {
-  Print (L"[EVB] Boot cancelled; rebooting.\r\n");
+  EVB_PRINT (L"[EVB] Boot cancelled; rebooting.\r\n");
   gRT->ResetSystem (EfiResetCold, EFI_ABORTED, 0, NULL);
   CpuDeadLoop ();
 }
@@ -307,7 +307,7 @@ ThrowFatalException (
   IN INT32 Line
   )
 {
-  Print (L"[EVB] VeraCrypt fatal error at source line %d.\r\n", Line);
+  EVB_PRINT (L"[EVB] VeraCrypt fatal error at source line %d.\r\n", Line);
   CpuDeadLoop ();
 }
 
@@ -351,7 +351,7 @@ EvbReadPassword (
   // BOOTMGR may clear the UEFI console after StartImage. Draw the banner in
   // the same phase as the prompt so it remains visible during authentication.
   EvbPrintAttributionBanner ();
-  Print (
+  EVB_PRINT (
     L"\r\n[EVB] VeraCrypt password "
     L"(empty = unencrypted; F5 = show/hide; Esc = reboot): "
     );
@@ -370,7 +370,7 @@ EvbReadPassword (
     if (Key.ScanCode == SCAN_ESC) {
       EvbFlushRepeatedKey ();
       ZeroMem (VcPassword, sizeof (*VcPassword));
-      Print (L"\r\n");
+      EVB_PRINT (L"\r\n");
       EvbCancelBoot ();
       return EFI_ABORTED;
     }
@@ -385,14 +385,14 @@ EvbReadPassword (
     if (Key.UnicodeChar == CHAR_CARRIAGE_RETURN) {
       EvbFlushRepeatedKey ();
       EvbCollapsePasswordDisplay (VcPassword);
-      Print (L"\r\n");
+      EVB_PRINT (L"\r\n");
       return EFI_SUCCESS;
     }
 
     if ((Key.UnicodeChar == CHAR_BACKSPACE) && (VcPassword->Length != 0)) {
       --VcPassword->Length;
       VcPassword->Text[VcPassword->Length] = 0;
-      Print (L"\b \b");
+      EVB_PRINT (L"\b \b");
       continue;
     }
 
@@ -400,7 +400,7 @@ EvbReadPassword (
         (VcPassword->Length < MAX_PASSWORD))
     {
       VcPassword->Text[VcPassword->Length++] = (UINT8)Key.UnicodeChar;
-      Print (L"%c", Visible ? Key.UnicodeChar : L'*');
+      EVB_PRINT (L"%c", Visible ? Key.UnicodeChar : L'*');
     }
   }
 }
@@ -424,7 +424,7 @@ EvbReadPim (
   }
 
   for (;;) {
-    Print (
+    EVB_PRINT (
       L"[EVB] VeraCrypt PIM "
       L"(empty = default; F5 = show/hide; Esc = reboot): "
       );
@@ -447,7 +447,7 @@ EvbReadPim (
       if (Key.ScanCode == SCAN_ESC) {
         EvbFlushRepeatedKey ();
         ZeroMem (Digits, sizeof (Digits));
-        Print (L"\r\n");
+        EVB_PRINT (L"\r\n");
         EvbCancelBoot ();
         return EFI_ABORTED;
       }
@@ -461,14 +461,14 @@ EvbReadPim (
 
       if (Key.UnicodeChar == CHAR_CARRIAGE_RETURN) {
         EvbFlushRepeatedKey ();
-        Print (L"\r\n");
+        EVB_PRINT (L"\r\n");
         if ((DigitCount == 0) || (Value <= MAX_BOOT_PIM_VALUE)) {
           *Pim = (INT32)Value;
           ZeroMem (Digits, sizeof (Digits));
           return EFI_SUCCESS;
         }
 
-        Print (L"[EVB] PIM must be between 0 and %u. Try again.\r\n", MAX_BOOT_PIM_VALUE);
+        EVB_PRINT (L"[EVB] PIM must be between 0 and %u. Try again.\r\n", MAX_BOOT_PIM_VALUE);
         ZeroMem (Digits, sizeof (Digits));
         break;
       }
@@ -477,7 +477,7 @@ EvbReadPim (
         --DigitCount;
         Digits[DigitCount] = 0;
         Value /= 10;
-        Print (L"\b \b");
+        EVB_PRINT (L"\b \b");
         continue;
       }
 
@@ -487,7 +487,7 @@ EvbReadPim (
         Value = (Value * 10) + (UINT32)(Key.UnicodeChar - L'0');
         Digits[DigitCount] = Key.UnicodeChar;
         ++DigitCount;
-        Print (L"%c", Visible ? Key.UnicodeChar : L'*');
+        EVB_PRINT (L"%c", Visible ? Key.UnicodeChar : L'*');
       }
     }
   }
@@ -516,7 +516,7 @@ EvbAllocateBootParams (
     if (!EFI_ERROR (Status)) {
       mBootParams = (EVB_BOOT_PARAMS *)(UINTN)Address;
       ZeroMem (mBootParams, EFI_PAGES_TO_SIZE (Pages));
-      Print (L"[EVB] VeraCrypt boot-parameter page reserved at 0x%Lx.\r\n", Address);
+      EVB_PRINT (L"[EVB] VeraCrypt boot-parameter page reserved at 0x%Lx.\r\n", Address);
       return EFI_SUCCESS;
     }
   }
@@ -561,7 +561,7 @@ EvbVeraCryptReserveBootParams (
     }
   }
 
-  Print (
+  EVB_PRINT (
     L"[EVB] Crypto workspace reserved at 0x%Lx (0x%x bytes).\r\n",
     (UINT64)(UINTN)mCryptoWorkspace,
     mCryptoWorkspaceSize
@@ -727,7 +727,7 @@ EvbVeraCryptInitialize (
       DecryptDataUnits (Probe, &ProbeDataUnit, 1, mCryptoInfo);
       CopyMem (ProbeOem, Probe + 3, 8);
       ProbeOem[8] = 0;
-      Print (
+      EVB_PRINT (
         L"[EVB] VeraCrypt header accepted: encrypted 0x%Lx..0x%Lx, EA=%d, PRF=%d.\r\n"
         L"[EVB] Decrypted first-sector OEM field: '%a' (%s).\r\n",
         mEncryptedStart,
@@ -746,7 +746,7 @@ EvbVeraCryptInitialize (
     }
 
     ZeroMem (&VcPassword, sizeof (VcPassword));
-    Print (L"[EVB] Incorrect password or unsupported VeraCrypt header (%d).\r\n", VcStatus);
+    EVB_PRINT (L"[EVB] Incorrect password or unsupported VeraCrypt header (%d).\r\n", VcStatus);
   }
 
   return EFI_ACCESS_DENIED;

@@ -106,7 +106,7 @@ To create a release source archive that includes the exact contents of all
 required Git submodules, run:
 
 ```powershell
-tools\New-SourceArchive.ps1 -Version 1.0.0
+tools\New-SourceArchive.ps1 -Version 1.0.1
 ```
 
 GitHub's automatically generated source archives contain only the submodule
@@ -186,6 +186,32 @@ machine. Never run or modify the same VHD from both environments at once.
 - Empty PIM: use the standard system PIM value `0`.
 - `F5`: toggle masked or visible password/PIM input.
 - `Esc`: clear entered secrets and cold-reboot to the firmware boot sequence.
+
+### Silent password entry
+
+To hide all text and input feedback produced by the bridge, create an empty
+file named `ventoy_vhdboot.silent` beside `ventoy_vhdboot.img` on the Ventoy
+data partition:
+
+```text
+/ventoy/ventoy_vhdboot.img
+/ventoy/ventoy_vhdboot.silent
+```
+
+The file's contents do not matter. With the marker present, the bridge clears
+the screen, hides the text cursor, and accepts the password and PIM without
+displaying prompts, characters, masking symbols, errors, or status messages.
+After selecting the VHD in Ventoy, wait for the blank screen, type the password
+and press Enter, then type the PIM and press Enter. For the default PIM, just
+press Enter at the second input. `Esc` still reboots; `F5` has no visible effect.
+An incorrect password starts another invisible password/PIM attempt. Remove
+the marker temporarily to see diagnostics. Removing the marker restores the
+normal interface.
+
+The marker affects only the bridge's own output. Ventoy's menu and any messages
+from Windows or firmware remain outside its control. Test the marker on the
+target drive before relying on it: unusual NTFS metadata layouts may prevent
+the bridge from detecting the file, leaving the normal interface visible.
 
 ## Screenshots
 

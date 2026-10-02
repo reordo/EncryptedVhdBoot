@@ -5,7 +5,7 @@
 param(
     [Parameter()]
     [ValidatePattern('^[0-9A-Za-z][0-9A-Za-z._-]*$')]
-    [string] $Version = '1.0.0',
+    [string] $Version = '1.0.1',
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]

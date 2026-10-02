@@ -6,7 +6,7 @@ charge at:
 https://github.com/reordo/EncryptedVhdBoot
 
 Release source tag:
-v1.0.0
+v1.0.1
 
 Required source revisions:
 
@@ -36,7 +36,7 @@ git clone https://github.com/reordo/EncryptedVhdBoot.git
 cd EncryptedVhdBoot
 tools\Initialize-Repository.ps1
 
-Each binary release also provides an EncryptedVhdBoot-v1.0.0-source.zip asset
+Each binary release also provides an EncryptedVhdBoot-v1.0.1-source.zip asset
 containing the project tree and the complete contents of these required source
 revisions. Its SOURCE-MANIFEST.txt records every included commit.
 
